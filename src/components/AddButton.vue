@@ -1,0 +1,30 @@
+<script setup>
+import PlusIcon from '@/assets/PlusIcon.vue'
+</script>
+
+<template>
+  <button class="add-button" popovertarget="collection-creator">
+    <PlusIcon></PlusIcon>
+  </button>
+</template>
+
+<style scoped>
+.add-button {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: var(--button-radius);
+  height: var(--button-radius);
+  border-radius: 50%;
+  background-color: var(--main-color);
+  z-index: 10;
+
+  svg {
+    fill: var(--text-color);
+    width: calc(var(--button-radius) * 2 / 3);
+    height: calc(var(--button-radius) * 2 / 3);
+  }
+}
+</style>

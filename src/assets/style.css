@@ -1,0 +1,26 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  --main-color: #4caf50;
+  --text-color: #ffffff;
+  --header-height: 10vh;
+  --button-radius: 48px;
+}
+a {
+  text-decoration: none;
+}
+li {
+  list-style-type: none;
+}
+body {
+  height: 100vh;
+}
+button,
+input[type='submit'] {
+  cursor: pointer;
+  border: none;
+  background-color: white;
+}
