@@ -1,6 +1,6 @@
 <template>
-  <TheHeader title="Collections" :settings-enabled="true" />
-  <collectionEditor collection="My Collection" />
+  <TheHeader :settings-enabled="true" />
+  <collectionEditor />
 </template>
 
 <script setup>

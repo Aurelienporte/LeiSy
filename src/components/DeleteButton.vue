@@ -28,5 +28,9 @@ import DeleteIcon from '@/assets/DeleteIcon.vue'
   &.active {
     box-shadow: 0 0 0 4px rgba(221, 68, 42, 0.5);
   }
+  &:disabled {
+    background-color: #dd442a80;
+    cursor: not-allowed;
+  }
 }
 </style>

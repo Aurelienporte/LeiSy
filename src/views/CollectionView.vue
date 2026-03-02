@@ -1,5 +1,5 @@
 <template>
-  <TheHeader title="Collections" :settings-enabled="true" />
+  <TheHeader :settings-enabled="true" />
   <collectionManager />
 </template>
 <script setup>

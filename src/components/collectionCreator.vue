@@ -1,5 +1,47 @@
+<script setup>
+import { openDB } from 'idb'
+import { ref, useTemplateRef } from 'vue'
+const name = ref('')
+const collectionCreator = useTemplateRef('collection-creator')
+const form = useTemplateRef('form')
+const emit = defineEmits(['newCollection', 'newState'])
+
+function sendCreation() {
+  emit('newCollection')
+}
+
+function sendNewState(event) {
+  emit('newState', event.newState)
+}
+
+async function createCollection() {
+  const db = await openDB('leiSyDB', 1)
+
+  // Create a transaction on the 'collections' store in read/write mode:
+  const tx = db.transaction('collections', 'readwrite')
+
+  // Add items to the store in a single transaction:
+  await Promise.all([
+    tx.store.add({
+      name: name.value.trim(),
+    }),
+    tx.done,
+  ])
+  sendCreation()
+  // Clear form and close popover
+  form.value.reset()
+  collectionCreator.value.hidePopover()
+}
+</script>
+
 <template>
-  <dialog popover id="collection-creator" ref="collection-creator" class="collection-creator">
+  <dialog
+    popover
+    id="collection-creator"
+    ref="collection-creator"
+    class="collection-creator"
+    @toggle="sendNewState($event)"
+  >
     <form
       @submit.prevent="createCollection(name)"
       method="dialog"
@@ -14,8 +56,11 @@
         id="newCollection"
         name="newCollection"
         class="collection-creator__input"
+        required
+        pattern="^(?!\s*$).+"
       />
       <input type="submit" value="Ajouter" class="collection-creator__button" />
+      <span class="error-message">Min 1 caractère</span>
     </form>
   </dialog>
   <svg class="border-wave">
@@ -57,41 +102,19 @@
     flex-flow: column;
     align-items: center;
     gap: 16px;
+
+    &:has(input:user-invalid) {
+      .error-message {
+        color: red;
+      }
+    }
   }
 }
 .border-wave {
   height: 0;
 }
+.error-message {
+  color: black;
+  font-size: 0.8em;
+}
 </style>
-
-<script setup>
-import { openDB } from 'idb'
-import { ref, useTemplateRef } from 'vue'
-const name = ref('')
-const collectionCreator = useTemplateRef('collection-creator')
-const form = useTemplateRef('form')
-const emit = defineEmits(['newCollection'])
-
-function sendCreation() {
-  emit('newCollection')
-}
-
-async function createCollection() {
-  const db = await openDB('leiSyDB', 1)
-
-  // Create a transaction on the 'collections' store in read/write mode:
-  const tx = db.transaction('collections', 'readwrite')
-
-  // Add items to the store in a single transaction:
-  await Promise.all([
-    tx.store.add({
-      name: name.value,
-    }),
-    tx.done,
-  ])
-  sendCreation()
-  // Clear form and close popover
-  form.value.reset()
-  collectionCreator.value.hidePopover()
-}
-</script>

@@ -3,7 +3,7 @@ import TheHeader from '@/components/TheHeader.vue'
 </script>
 
 <template>
-  <TheHeader title="Be LeiSy" :settings-enabled="false" />
+  <TheHeader :settings-enabled="false" />
   <nav class="home__nav">
     <ul class="nav__list">
       <li class="nav__item">

@@ -1,6 +1,53 @@
+<script setup>
+import ArrowBackIcon from '@/assets/ArrowBackIcon.vue'
+import WheelIcon from '@/assets/WheelIcon.vue'
+
+import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+
+defineProps({
+  settingsEnabled: {
+    type: Boolean,
+    required: false,
+  },
+})
+
+const route = useRoute()
+const router = useRouter()
+const path = ref(route.path)
+const home = computed(() => {
+  if (path.value === '/') {
+    return true
+  } else {
+    return false
+  }
+})
+
+// Set title based on path
+const title = ref('')
+
+if (path.value === '/') {
+  title.value = 'LeiSy'
+} else if (path.value === '/collections') {
+  title.value = 'Collections'
+} else if (path.value === '/training') {
+  title.value = 'Training'
+} else if (route.params !== '') {
+  title.value = route.params.collection
+} else {
+  title.value = 'LeiSy'
+}
+
+function goBack() {
+  router.go(-1)
+}
+</script>
+
 <template>
   <header>
-    <RouterLink v-if="!home" to="/"><arrowBackIcon></arrowBackIcon></RouterLink>
+    <button class="header__back-button" v-if="!home" @click="goBack">
+      <arrowBackIcon></arrowBackIcon>
+    </button>
     <h1 class="header__title">{{ title }}</h1>
     <button class="header__settings" :disabled="!settingsEnabled">
       <wheelIcon></wheelIcon>
@@ -15,6 +62,12 @@ header {
   place-items: center;
   background-color: var(--main-color);
   color: var(--text-color);
+
+  .header__back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
 
   .header__title {
     grid-area: 1/2/2/3;
@@ -36,46 +89,3 @@ header {
   }
 }
 </style>
-
-<script setup>
-import ArrowBackIcon from '@/assets/ArrowBackIcon.vue'
-import WheelIcon from '@/assets/WheelIcon.vue'
-
-import { useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
-
-defineProps({
-  // title: {
-  //   type: String,
-  //   required: true,
-  // },
-  settingsEnabled: {
-    type: Boolean,
-    required: false,
-  },
-})
-
-const route = useRoute()
-const path = ref(route.path)
-const home = computed(() => {
-  if (path.value === '/') {
-    return true
-  } else {
-    return false
-  }
-})
-
-const title = ref('')
-
-if (path.value === '/') {
-  title.value = 'LeiSy'
-} else if (path.value === '/collections') {
-  title.value = 'Collections'
-} else if (path.value === '/training') {
-  title.value = 'Training'
-} else if (route.params !== '') {
-  title.value = route.params.collection
-} else {
-  title.value = 'LeiSy'
-}
-</script>

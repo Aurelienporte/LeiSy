@@ -1,23 +1,10 @@
-<template>
-  <form @submit.prevent="createCard(name)">
-    <label for="newCard">Question</label>
-    <input v-model="card.question" type="text" id="question" name="question" />
-    <label for="newCard">Réponse</label>
-    <input v-model="card.answer" type="text" id="answer" name="answer" />
-    <input type="submit" value="Créer" />
-  </form>
-</template>
-
 <script setup>
 import { openDB } from 'idb'
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 
-const props = defineProps({
-  collection: {
-    type: String,
-    required: true,
-  },
-})
+const route = useRoute()
+const collection = route.params.collection
 
 const card = ref({ question: '', answer: '' })
 
@@ -32,9 +19,19 @@ async function createCard() {
     tx.store.add({
       question: card.value.question,
       answer: card.value.answer,
-      collection: props.collection,
+      collection: collection,
     }),
     tx.done,
   ])
 }
 </script>
+
+<template>
+  <form @submit.prevent="createCard(name)">
+    <label for="newCard">Question</label>
+    <input v-model="card.question" type="text" id="question" name="question" />
+    <label for="newCard">Réponse</label>
+    <input v-model="card.answer" type="text" id="answer" name="answer" />
+    <input type="submit" value="Créer" />
+  </form>
+</template>

@@ -29,7 +29,7 @@
 </style>
 
 <script setup>
-import CardCrator from './CardCrator.vue'
+import CardCrator from './CardCreator.vue'
 import collectionDeleter from './collectionDeleter.vue'
 import AddButton from './AddButton.vue'
 import DeleteButton from './DeleteButton.vue'

@@ -8,8 +8,8 @@
       Cette action est irréversible et supprimera tous les éléments de cette collection.
     </div>
     <div class="deleter__button-bar">
-      <button @click="deleteCollection(collection)">Oui</button>
-      <button @click="cancelDeletion">Non</button>
+      <button @click="deleteCollection(collection)">Supprimer</button>
+      <button @click="cancelDeletion">Annuler</button>
     </div>
   </div>
 </template>

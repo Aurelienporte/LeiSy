@@ -1,52 +1,25 @@
-<template>
-  <section class="collection-manager">
-    <collectionCreator @newCollection="updatePicker" />
-    <collectionDeleter
-      v-if="toDelete"
-      :collection="selectedCollection"
-      @deleted="updatePicker"
-      @canceled="clearSelection"
-    />
-    <collectionViewer
-      v-if="collections.length > 0"
-      :collections="collections"
-      :isSelectMode="enableDeletion"
-      @selected="setSelection"
-    />
-
-    <DeleteButton
-      v-if="collections.length > 0"
-      @click="toggleDeletion"
-      :class="{ active: enableDeletion }"
-    />
-    <AddButton />
-    <collectionEditor v-if="toEdit" :collection="selectedCollection" />
-  </section>
-</template>
-
-<style scoped>
-.collection-manager {
-  height: 90vh;
-  overflow: scroll;
-}
-.collection-manager:has(.active) {
-  background-color: orange;
-}
-</style>
-
 <script setup>
 import collectionCreator from './collectionCreator.vue'
 import collectionDeleter from './collectionDeleter.vue'
 import collectionViewer from './collectionViewer.vue'
-import collectionEditor from './collectionEditor.vue'
 import AddButton from './AddButton.vue'
 import DeleteButton from './DeleteButton.vue'
 
 import { ref, computed } from 'vue'
 
-const toEdit = computed(() => {
-  return selectedCollection.value !== '' && !enableDeletion.value
-})
+// Manage edition state to disable deletion when editing
+const isEditing = ref(false)
+
+function setOngoingEdition(newState) {
+  if (newState === 'open') {
+    isEditing.value = true
+  } else if (newState === 'closed') {
+    isEditing.value = false
+  } else {
+    console.warn('Unexpected newState value:', newState)
+  }
+}
+
 const toDelete = computed(() => {
   return selectedCollection.value !== '' && enableDeletion.value
 })
@@ -86,3 +59,40 @@ function toggleDeletion() {
   enableDeletion.value = !enableDeletion.value
 }
 </script>
+
+<template>
+  <section class="collection-manager">
+    <collectionCreator @newCollection="updatePicker" @newState="setOngoingEdition" />
+    <collectionDeleter
+      v-if="toDelete"
+      :collection="selectedCollection"
+      @deleted="updatePicker"
+      @canceled="clearSelection"
+    />
+    <collectionViewer
+      v-if="collections.length > 0"
+      :collections="collections"
+      :isSelectMode="enableDeletion"
+      @selected="setSelection"
+    />
+
+    <DeleteButton
+      v-if="collections.length > 0"
+      @click="toggleDeletion"
+      :disabled="isEditing"
+      :class="{ active: enableDeletion }"
+    />
+    <AddButton :disabled="enableDeletion" :class="{ active: isEditing }" />
+    <!-- <collectionEditor v-if="toEdit" /> -->
+  </section>
+</template>
+
+<style scoped>
+.collection-manager {
+  height: 90vh;
+  overflow: scroll;
+}
+.collection-manager:has(.active) {
+  background-color: orange;
+}
+</style>
