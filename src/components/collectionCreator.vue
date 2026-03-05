@@ -6,7 +6,7 @@ const collectionCreator = useTemplateRef('collection-creator')
 const form = useTemplateRef('form')
 const emit = defineEmits(['newCollection', 'newState'])
 
-function sendCreation() {
+function emitNewCollection() {
   emit('newCollection')
 }
 
@@ -24,10 +24,12 @@ async function createCollection() {
   await Promise.all([
     tx.store.add({
       name: name.value.trim(),
+      slug: name.value.trim().toLowerCase().replace(/\s+/g, '_'),
     }),
     tx.done,
   ])
-  sendCreation()
+  emitNewCollection()
+
   // Clear form and close popover
   form.value.reset()
   collectionCreator.value.hidePopover()

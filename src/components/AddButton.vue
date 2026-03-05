@@ -1,9 +1,16 @@
 <script setup>
 import PlusIcon from '@/assets/PlusIcon.vue'
+
+defineProps({
+  target: {
+    type: String,
+    required: true,
+  },
+})
 </script>
 
 <template>
-  <button class="add-button" popovertarget="collection-creator">
+  <button class="add-button" :popovertarget="`${target}-creator`">
     <PlusIcon></PlusIcon>
   </button>
 </template>

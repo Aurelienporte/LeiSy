@@ -1,17 +1,66 @@
+<script setup>
+import { openDB } from 'idb'
+import { getCollectionFromStore } from '@/utils.js'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+const collections = ref([])
+
+// Fetch collections on mount
+onMounted(async () => {
+  collections.value = await getCollectionFromStore()
+})
+
+// Computed property to get the collection name from slug
+const collectionName = computed(() => {
+  const slug = route.params.collection
+  if (slug && collections.value.length > 0) {
+    const collection = collections.value.find((c) => c.slug === slug)
+    return collection ? collection.name : slug
+  }
+  return ''
+})
+
+async function deleteCollection(name) {
+  const db = await openDB('leiSyDB', 1)
+
+  // Create a transaction on the 'collections' store in read/write mode:
+  const tx = db.transaction('collections', 'readwrite')
+
+  // Delete a collection from the store in a single transaction:
+  await Promise.all([tx.store.delete(name), tx.done])
+
+  sendDeletion()
+  // Navigate back to collections view
+  router.push('/collections')
+}
+
+const emit = defineEmits(['deleted', 'canceled'])
+
+function sendDeletion() {
+  emit('deleted')
+}
+
+function cancelDeletion() {
+  emit('canceled')
+}
+</script>
+
 <template>
-  <div class="collection-deleter" ref="form">
+  <dialog class="collection-deleter" popover id="collection-deleter">
     <div class="deleter__message">
       <h2>
-        <span>Supprimer</span> <span>{{ collection }} ?</span>
+        <span>Supprimer</span> <span>{{ collectionName }} ?</span>
       </h2>
-
       Cette action est irréversible et supprimera tous les éléments de cette collection.
     </div>
     <div class="deleter__button-bar">
-      <button @click="deleteCollection(collection)">Supprimer</button>
+      <button @click="deleteCollection(collectionName)">Supprimer</button>
       <button @click="cancelDeletion">Annuler</button>
     </div>
-  </div>
+  </dialog>
 </template>
 
 <style scoped>
@@ -61,37 +110,3 @@
   }
 }
 </style>
-
-<script setup>
-defineProps({
-  collection: {
-    type: String,
-    required: true,
-    default: '',
-  },
-})
-
-import { openDB } from 'idb'
-
-async function deleteCollection(name) {
-  const db = await openDB('leiSyDB', 1)
-
-  // Create a transaction on the 'collections' store in read/write mode:
-  const tx = db.transaction('collections', 'readwrite')
-
-  // Delete a collection from the store in a single transaction:
-  await Promise.all([tx.store.delete(name), tx.done])
-
-  sendDeletion()
-}
-
-const emit = defineEmits(['deleted', 'canceled'])
-
-function sendDeletion() {
-  emit('deleted')
-}
-
-function cancelDeletion() {
-  emit('canceled')
-}
-</script>

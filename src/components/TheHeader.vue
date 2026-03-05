@@ -1,9 +1,10 @@
 <script setup>
 import ArrowBackIcon from '@/assets/ArrowBackIcon.vue'
 import WheelIcon from '@/assets/WheelIcon.vue'
+import { getCollectionFromStore } from '@/utils.js'
 
 import { useRoute, useRouter } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 defineProps({
   settingsEnabled: {
@@ -15,31 +16,46 @@ defineProps({
 const route = useRoute()
 const router = useRouter()
 const path = ref(route.path)
-const home = computed(() => {
+const collections = ref([])
+
+// Fetch collections on mount
+onMounted(async () => {
+  collections.value = await getCollectionFromStore()
+})
+
+const home = computed(() => path.value === '/')
+
+// Computed property to get the collection name from slug
+const collectionName = computed(() => {
+  const slug = route.params.collection
+  if (slug && collections.value.length > 0) {
+    const collection = collections.value.find((c) => c.slug === slug)
+    return collection ? collection.name : slug
+  }
+  return ''
+})
+
+// Updated title logic using computed properties
+const title = computed(() => {
   if (path.value === '/') {
-    return true
+    return 'LeiSy'
+  } else if (path.value === '/collections') {
+    return 'Collections'
+  } else if (path.value === '/training') {
+    return 'Training'
+  } else if (route.params.collection) {
+    return collectionName.value
   } else {
-    return false
+    return 'LeiSy'
   }
 })
 
-// Set title based on path
-const title = ref('')
-
-if (path.value === '/') {
-  title.value = 'LeiSy'
-} else if (path.value === '/collections') {
-  title.value = 'Collections'
-} else if (path.value === '/training') {
-  title.value = 'Training'
-} else if (route.params !== '') {
-  title.value = route.params.collection
-} else {
-  title.value = 'LeiSy'
-}
-
 function goBack() {
-  router.go(-1)
+  if (path.value === '/collections') {
+    router.push('/')
+  } else {
+    router.go(-1)
+  }
 }
 </script>
 
@@ -49,7 +65,11 @@ function goBack() {
       <arrowBackIcon></arrowBackIcon>
     </button>
     <h1 class="header__title">{{ title }}</h1>
-    <button class="header__settings" :disabled="!settingsEnabled">
+    <button
+      class="header__settings"
+      :disabled="!settingsEnabled"
+      popovertarget="collection-options"
+    >
       <wheelIcon></wheelIcon>
     </button>
   </header>
