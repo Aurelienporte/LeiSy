@@ -23,13 +23,10 @@ function emitIdToDelete(id) {
 </template>
 <style scoped>
 .card-thumbnail {
-  --side: calc(100vw - var(--gap) * 2);
-
   display: grid;
   grid-template-columns: 1fr 50px;
   place-items: center;
-  height: calc(var(--side) / 2);
-  width: var(--side);
+  height: 25svh;
   border: 1px solid black;
   border-radius: 8px;
   background-color: white;
