@@ -4,7 +4,12 @@ defineProps({
     type: Object,
     required: true,
   },
-  error: {
+  success: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  failure: {
     type: Boolean,
     required: false,
     default: false,
@@ -12,15 +17,12 @@ defineProps({
 })
 </script>
 <template>
-  <div class="card-thumbnail">
-    <div class="card__front" :class="{ error: error }">
-      <span>Réponse incorrecte </span>
-      <p>{{ card.question }}</p>
-    </div>
+  <div class="card-thumbnail" :class="{ flipped: success || failure }">
     <div class="card__back">
-      <span>Bonne réponse</span>
-      <span>La bonne réponse est:</span>
       <p>{{ card.answer }}</p>
+    </div>
+    <div class="card__front">
+      <p>{{ card.question }}</p>
     </div>
   </div>
 </template>
@@ -31,7 +33,14 @@ defineProps({
   grid-template-rows: 25vh;
   place-items: center;
   width: 100%;
+  perspective: 500px;
+  transform-style: preserve-3d;
+  transition: none;
 
+  &:is(.flipped) {
+    transform: rotateX(180deg);
+    transition: transform 0.4s ease-out;
+  }
   .card__front,
   .card__back {
     grid-area: 1/1/2/2;
@@ -55,11 +64,14 @@ defineProps({
       align-self: center;
     }
   }
-  /* .card__back {
-    display: none;
-  } */
+  .card__back {
+    /* display: none; */
+    transform: rotateX(180deg);
+    backface-visibility: hidden;
+  }
   .card__front {
-    display: none;
+    /* display: none; */
+    backface-visibility: hidden;
   }
   .error:has(span) {
     & span {

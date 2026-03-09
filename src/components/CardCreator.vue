@@ -28,6 +28,7 @@ async function createCard() {
       question: card.value.question,
       answer: card.value.answer,
       collection: collection,
+      result: [],
     }),
     tx.done,
   ])

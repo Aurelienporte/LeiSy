@@ -1,45 +1,59 @@
 <script setup>
 import TheHeader from '@/components/TheHeader.vue'
 import TrainingCard from '@/components/TrainingCard.vue'
-// import { getCardsFromStore } from '@/utils'
-import { computed, ref } from 'vue'
+import TrainingStatusBar from '@/components/TrainingStatusBar.vue'
+import { getCardsFromStore, getCollectionFromStore } from '@/utils'
+import { computed, ref, onMounted } from 'vue'
 
-const cards = ref([
-  {
-    id: 1,
-    question: 'Question 1',
-    answer: 'Réponse 1',
-    collection: 'collection-1',
-  },
-  {
-    id: 2,
-    question: 'Question 2',
-    answer: 'Réponse 2',
-    collection: 'collection-1',
-  },
-])
-
+const cards = ref([])
+const collections = ref([])
+// Fetch cards on mount
+onMounted(async () => {
+  cards.value = await getCardsFromStore()
+})
+// Fetch collections on mount
+onMounted(async () => {
+  collections.value = await getCollectionFromStore()
+})
+const selectedCards = computed(() => {
+  if (customizedCollectionsList.value === 'all') {
+    return cards.value
+  }
+  return cards.value.filter((card) => selectedCollections.value.includes(card.collection))
+})
 const userAnswer = ref('')
 const goodAnswer = ref(false)
 const badAnswer = ref(false)
+const failure = ref(false)
 const currentCardIndex = ref(0)
 const severityMode = ref('nice')
 const wrongAttempts = ref(0)
 const attemptsLimit = ref(3)
 const hints = ref('some')
+const isFinished = ref(false)
+const selectedCollections = ref([])
+const customizedCollectionsList = ref('all')
+
+const answerNeeded = computed(() => {
+  return !goodAnswer.value && !failure.value && !isFinished.value
+})
+
+const enableCustomCollections = computed(() =>
+  customizedCollectionsList.value === 'custom' ? true : false,
+)
+
 const placeholder = computed(() => {
   if (hints.value === 'some' && wrongAttempts.value > 0) {
-    const currentCard = cards.value[currentCardIndex.value]
+    const currentCard = selectedCards.value[currentCardIndex.value]
     if (currentCard) {
       return `${currentCard.answer.substring(0, wrongAttempts.value)}...`
     }
   }
   return 'Votre réponse'
 })
-const isFinished = ref(false)
 
 function checkAnswer(mode) {
-  const currentCard = cards.value[currentCardIndex.value]
+  const currentCard = selectedCards.value[currentCardIndex.value]
   if (!currentCard) return
 
   // very strict mode
@@ -82,27 +96,12 @@ function checkAnswer(mode) {
   if (isCorrect) {
     goodAnswer.value = true
     badAnswer.value = false
-    // Move to next card + reset
-    currentCardIndex.value++
-    wrongAttempts.value = 0
-    goodAnswer.value = false
-    badAnswer.value = false
-    if (currentCardIndex.value >= cards.value.length) {
-      isFinished.value = true
-    }
   } else {
     goodAnswer.value = false
     badAnswer.value = true
     wrongAttempts.value++
     if (wrongAttempts.value >= attemptsLimit.value) {
-      // Move to next card after attempts limit reached + reset
-      currentCardIndex.value++
-      wrongAttempts.value = 0
-      goodAnswer.value = false
-      badAnswer.value = false
-      if (currentCardIndex.value >= cards.value.length) {
-        isFinished.value = true
-      }
+      failure.value = true
     }
   }
 
@@ -133,27 +132,48 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length]
 }
 
-function setTrainingParams() {
-  // This function can be used to set any additional parameters for the training session based on the selected severity mode.
-  console.log('Selected severity mode:', severityMode.value)
-  console.log('Selected attempts limit:', attemptsLimit.value)
-}
-
 const currentCard = computed(() => {
-  if (cards.value.length > 0 && currentCardIndex.value < cards.value.length) {
-    return cards.value[currentCardIndex.value]
+  if (selectedCards.value.length > 0 && currentCardIndex.value < selectedCards.value.length) {
+    return selectedCards.value[currentCardIndex.value]
   }
   return false
 })
+
+function nextCard() {
+  if (currentCardIndex.value < selectedCards.value.length - 1) {
+    currentCardIndex.value++
+    //reset states
+    goodAnswer.value = false
+    badAnswer.value = false
+    failure.value = false
+    wrongAttempts.value = 0
+  } else {
+    isFinished.value = true
+  }
+}
 </script>
 <template>
   <TheHeader :settings-enabled="false" />
   <div class="training">
-    <TrainingCard v-if="currentCard" :card="currentCard" :error="badAnswer" />
-    <form @submit.prevent="checkAnswer(severityMode)">
+    <TrainingStatusBar
+      :current-card-index="currentCardIndex"
+      :total-cards="selectedCards.length"
+      :attempts-limit="attemptsLimit"
+      :wrong-attempts="wrongAttempts"
+      :good-answer="goodAnswer"
+      :bad-answer="badAnswer"
+      :failure="failure"
+      :is-finished="isFinished"
+    />
+    <TrainingCard
+      v-if="currentCard && isFinished === false"
+      :card="currentCard"
+      :success="goodAnswer"
+      :failure="failure"
+    />
+    <button @click="nextCard" v-if="!isFinished">Question suivante</button>
+    <form @submit.prevent="checkAnswer(severityMode)" v-show="answerNeeded">
       <label for="answer">Réponse:</label>
-      <span v-if="goodAnswer">Bonne réponse!</span>
-      <span v-else-if="badAnswer">Quelque chose n'est pas correct.</span>
       <input
         type="text"
         :placeholder="placeholder"
@@ -164,14 +184,30 @@ const currentCard = computed(() => {
       <input type="submit" value="Vérifier" />
     </form>
     <form>
-      <label for="severity">Sévérité:</label>
+      <div>
+        <label for="customizeCollectionsList">Toutes</label>
+        <input type="radio" id="all" value="all" v-model="customizedCollectionsList" checked />
+      </div>
+      <div>
+        <label for="customizeCollectionsList">Sélectionner</label>
+        <input type="radio" id="custom" value="custom" v-model="customizedCollectionsList" />
+      </div>
+
+      <label for="collections">Collections:</label>
       <select
-        name="severity"
-        id="severity"
-        required
-        v-model="severityMode"
-        @change="setTrainingParams"
+        name="collections"
+        id="collections"
+        v-model="selectedCollections"
+        multiple
+        :disabled="!enableCustomCollections"
       >
+        <option value="">Choisir une ou plusieurs collections</option>
+        <option v-for="collection in collections" :key="collection.id" :value="collection.slug">
+          {{ collection.name }}
+        </option>
+      </select>
+      <label for="severity">Sévérité:</label>
+      <select name="severity" id="severity" required v-model="severityMode">
         <option value="very strict">Très strict</option>
         <option value="strict">Strict</option>
         <option value="nice" selected>Nice</option>
@@ -179,12 +215,7 @@ const currentCard = computed(() => {
         <option value="cool">Cool</option>
       </select>
       <label for="attemptsLimit">Limite d'essais:</label>
-      <select
-        name="attemptsLimit"
-        id="attemptsLimit"
-        v-model="attemptsLimit"
-        @change="setTrainingParams"
-      >
+      <select name="attemptsLimit" id="attemptsLimit" v-model="attemptsLimit">
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3" selected>3</option>
@@ -195,8 +226,6 @@ const currentCard = computed(() => {
         <option value="some" selected>Première lettre</option>
       </select>
     </form>
-    <span v-if="isFinished">Vous avez fini le quizz</span>
-    <span v-if="cards.length === 0">Aucune carte disponible.</span>
   </div>
 </template>
 <style scoped>
