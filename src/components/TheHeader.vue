@@ -74,7 +74,11 @@ function goBack() {
     </button>
   </header>
 </template>
-
+<style>
+:root {
+  --header-height: 64px;
+}
+</style>
 <style scoped>
 header {
   display: grid;

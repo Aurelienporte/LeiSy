@@ -2,63 +2,83 @@
 import TheHeader from '@/components/TheHeader.vue'
 import TrainingCard from '@/components/TrainingCard.vue'
 import TrainingStatusBar from '@/components/TrainingStatusBar.vue'
-import { getCardsFromStore, getCollectionFromStore } from '@/utils'
+import {
+  getCardsFromStore,
+  getCollectionFromStore,
+  updateCardReview,
+  isEarlierOrEqual,
+} from '@/utils'
 import { computed, ref, onMounted } from 'vue'
 
-const cards = ref([])
-const collections = ref([])
 // Fetch cards on mount
+const cards = ref([])
 onMounted(async () => {
   cards.value = await getCardsFromStore()
 })
+
 // Fetch collections on mount
+const collections = ref([])
 onMounted(async () => {
   collections.value = await getCollectionFromStore()
 })
+
+// Filter cards based on selected collections and review date
+const selectedCollections = ref([])
+const customizedCollectionsList = ref('all')
+
 const selectedCards = computed(() => {
   if (customizedCollectionsList.value === 'all') {
-    return cards.value
+    return cards.value.filter((card) => isEarlierOrEqual(card.nextReview))
   }
-  return cards.value.filter((card) => selectedCollections.value.includes(card.collection))
+  return cards.value.filter(
+    (card) =>
+      selectedCollections.value.includes(card.collection) && isEarlierOrEqual(card.nextReview),
+  )
 })
+
+// Quizz states
+const currentCardIndex = ref(0)
+const currentCard = computed(() => selectedCards.value[currentCardIndex.value])
+const isFinished = ref(false)
+
+// Answer states
 const userAnswer = ref('')
 const goodAnswer = ref(false)
 const badAnswer = ref(false)
 const failure = ref(false)
-const currentCardIndex = ref(0)
+
+// Settings
 const severityMode = ref('nice')
-const wrongAttempts = ref(0)
-const attemptsLimit = ref(3)
 const hints = ref('some')
-const isFinished = ref(false)
-const selectedCollections = ref([])
-const customizedCollectionsList = ref('all')
-
-const answerNeeded = computed(() => {
-  return !goodAnswer.value && !failure.value && !isFinished.value
-})
-
+const attemptsLimit = ref(3)
+const wrongAttempts = ref(0)
+// Unlock collection selection if user chooses to customize collections list
 const enableCustomCollections = computed(() =>
   customizedCollectionsList.value === 'custom' ? true : false,
 )
 
+// Hide  form if the answer is correct, if the user has failed or if there are no more cards to review
+const answerNeeded = computed(() => {
+  return !goodAnswer.value && !failure.value && !isFinished.value
+})
+
+// Show hint if user has chosen to have some hints and if they have made at least one wrong attempt
 const placeholder = computed(() => {
   if (hints.value === 'some' && wrongAttempts.value > 0) {
-    const currentCard = selectedCards.value[currentCardIndex.value]
-    if (currentCard) {
-      return `${currentCard.answer.substring(0, wrongAttempts.value)}...`
+    if (currentCard.value && currentCard.value.answer.length > wrongAttempts.value) {
+      return `${currentCard.value.answer.substring(0, wrongAttempts.value)}...`
     }
   }
   return 'Votre réponse'
 })
 
-function checkAnswer(mode) {
-  const currentCard = selectedCards.value[currentCardIndex.value]
-  if (!currentCard) return
+// Check answer with different severity modes and trigger updtate of the card review data accordingly
+async function checkAnswer(mode) {
+  if (!currentCard.value) return
 
   // very strict mode
   const userAnswerTrimmed = userAnswer.value.trim()
-  const correctAnswerTrimmed = currentCard.answer.trim()
+  const correctAnswerTrimmed = currentCard.value.answer.trim()
 
   let isCorrect = false
 
@@ -96,12 +116,24 @@ function checkAnswer(mode) {
   if (isCorrect) {
     goodAnswer.value = true
     badAnswer.value = false
+    const nextData = setNextReview(currentCard.value, 'success')
+    await updateCardReview(currentCard.value, nextData)
+    // const cardIndex = cards.value.findIndex((c) => c.id === currentCard.value.id)
+    // if (cardIndex !== -1) {
+    //   cards.value[cardIndex] = { ...cards.value[cardIndex], ...nextData }
+    // }
   } else {
     goodAnswer.value = false
     badAnswer.value = true
     wrongAttempts.value++
     if (wrongAttempts.value >= attemptsLimit.value) {
       failure.value = true
+      const nextData = setNextReview(currentCard.value, 'failure')
+      await updateCardReview(currentCard.value, nextData)
+      // const cardIndex = cards.value.findIndex((c) => c.id === currentCard.value.id)
+      // if (cardIndex !== -1) {
+      //   cards.value[cardIndex] = { ...cards.value[cardIndex], ...nextData }
+      // }
     }
   }
 
@@ -109,6 +141,7 @@ function checkAnswer(mode) {
   userAnswer.value = ''
 }
 
+// Levenshtein distance function to calculate the distance between two strings
 function levenshtein(a, b) {
   const matrix = []
 
@@ -132,12 +165,12 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length]
 }
 
-const currentCard = computed(() => {
-  if (selectedCards.value.length > 0 && currentCardIndex.value < selectedCards.value.length) {
-    return selectedCards.value[currentCardIndex.value]
-  }
-  return false
-})
+// const currentCard = computed(() => {
+//   if (selectedCards.value.length > 0 && currentCardIndex.value < selectedCards.value.length) {
+//     return selectedCards.value[currentCardIndex.value]
+//   }
+//   return false
+// })
 
 function nextCard() {
   if (currentCardIndex.value < selectedCards.value.length - 1) {
@@ -150,6 +183,21 @@ function nextCard() {
   } else {
     isFinished.value = true
   }
+}
+
+function setNextReview(card, result) {
+  const now = new Date()
+  let nextReview
+  let successInARow = card.successInARow
+  if (result === 'success') {
+    successInARow++
+    nextReview = new Date(now.getTime() + Math.pow(2, card.successInARow++) * 24 * 60 * 60 * 1000)
+  }
+  if (result === 'failure') {
+    successInARow = 0
+    nextReview = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+  }
+  return { nextReview, successInARow }
 }
 </script>
 <template>

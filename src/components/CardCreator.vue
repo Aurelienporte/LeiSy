@@ -15,6 +15,11 @@ const emit = defineEmits(['newCard'])
 function emitNewCard() {
   emit('newCard')
 }
+function addSixHours() {
+  const now = new Date()
+  const nextReview = new Date(now.getTime() + 6 * 60 * 60 * 1000)
+  return nextReview
+}
 
 async function createCard() {
   const db = await openDB('leiSyDB', 1)
@@ -28,7 +33,8 @@ async function createCard() {
       question: card.value.question,
       answer: card.value.answer,
       collection: collection,
-      result: [],
+      successInARow: 0,
+      nextReview: addSixHours(),
     }),
     tx.done,
   ])

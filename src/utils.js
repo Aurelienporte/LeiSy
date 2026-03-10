@@ -58,3 +58,31 @@ export async function getCardsFromStore() {
   cards = value
   return cards
 }
+
+//Update card review date and success in a row count
+export async function updateCardReview(card, nextReviewData) {
+  const db = await openDB('leiSyDB', 1)
+
+  // Create a transaction on the 'cards' store in read/write mode:
+  const tx = db.transaction('cards', 'readwrite')
+
+  // Add items to the store in a single transaction:
+  await tx.store.put({
+    ...card,
+    nextReview: nextReviewData.nextReview,
+    successInARow: nextReviewData.successInARow,
+  })
+  tx.done
+}
+
+// True if earlier or equal to today, false otherwise
+export function isEarlierOrEqual(dateToCompare) {
+  const today = new Date()
+
+  today.setHours(0, 0, 0, 0)
+
+  const comparedDate = new Date(dateToCompare)
+  comparedDate.setHours(0, 0, 0, 0)
+
+  return comparedDate.getTime() <= today.getTime()
+}

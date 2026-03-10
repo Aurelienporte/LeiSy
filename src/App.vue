@@ -32,14 +32,14 @@ useDB()
 </script>
 
 <template>
-  <main class="app-main">
+  <div class="app-container">
     <RouterView />
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.app-main {
+.app-container {
   display: grid;
-  grid-template-rows: var(--header-height) 90vh;
+  grid-template-rows: var(--header-height) calc(100dvh - var(--header-height));
 }
 </style>
