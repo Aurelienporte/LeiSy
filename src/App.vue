@@ -41,5 +41,7 @@ useDB()
 .app-container {
   display: grid;
   grid-template-rows: var(--header-height) calc(100dvh - var(--header-height));
+  overflow: hidden;
+  background-color: oklch(0.56 0.1 271.2);
 }
 </style>

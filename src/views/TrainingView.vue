@@ -1,6 +1,7 @@
 <script setup>
 import TheHeader from '@/components/TheHeader.vue'
 import TrainingCard from '@/components/TrainingCard.vue'
+import TrainingOptions from '@/components/TrainingOptions.vue'
 import TrainingStatusBar from '@/components/TrainingStatusBar.vue'
 import {
   getCardsFromStore,
@@ -53,9 +54,9 @@ const hints = ref('some')
 const attemptsLimit = ref(3)
 const wrongAttempts = ref(0)
 // Unlock collection selection if user chooses to customize collections list
-const enableCustomCollections = computed(() =>
-  customizedCollectionsList.value === 'custom' ? true : false,
-)
+// const enableCustomCollections = computed(() =>
+//   customizedCollectionsList.value === 'custom' ? true : false,
+// )
 
 // Hide  form if the answer is correct, if the user has failed or if there are no more cards to review
 const answerNeeded = computed(() => {
@@ -118,10 +119,6 @@ async function checkAnswer(mode) {
     badAnswer.value = false
     const nextData = setNextReview(currentCard.value, 'success')
     await updateCardReview(currentCard.value, nextData)
-    // const cardIndex = cards.value.findIndex((c) => c.id === currentCard.value.id)
-    // if (cardIndex !== -1) {
-    //   cards.value[cardIndex] = { ...cards.value[cardIndex], ...nextData }
-    // }
   } else {
     goodAnswer.value = false
     badAnswer.value = true
@@ -130,10 +127,6 @@ async function checkAnswer(mode) {
       failure.value = true
       const nextData = setNextReview(currentCard.value, 'failure')
       await updateCardReview(currentCard.value, nextData)
-      // const cardIndex = cards.value.findIndex((c) => c.id === currentCard.value.id)
-      // if (cardIndex !== -1) {
-      //   cards.value[cardIndex] = { ...cards.value[cardIndex], ...nextData }
-      // }
     }
   }
 
@@ -165,13 +158,6 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length]
 }
 
-// const currentCard = computed(() => {
-//   if (selectedCards.value.length > 0 && currentCardIndex.value < selectedCards.value.length) {
-//     return selectedCards.value[currentCardIndex.value]
-//   }
-//   return false
-// })
-
 function nextCard() {
   if (currentCardIndex.value < selectedCards.value.length - 1) {
     currentCardIndex.value++
@@ -201,7 +187,7 @@ function setNextReview(card, result) {
 }
 </script>
 <template>
-  <TheHeader :settings-enabled="false" />
+  <TheHeader />
   <div class="training">
     <TrainingStatusBar
       :current-card-index="currentCardIndex"
@@ -231,7 +217,7 @@ function setNextReview(card, result) {
       />
       <input type="submit" value="Vérifier" />
     </form>
-    <form>
+    <!-- <form>
       <div>
         <label for="customizeCollectionsList">Toutes</label>
         <input type="radio" id="all" value="all" v-model="customizedCollectionsList" checked />
@@ -273,8 +259,9 @@ function setNextReview(card, result) {
         <option value="none">Aucun</option>
         <option value="some" selected>Première lettre</option>
       </select>
-    </form>
+    </form> -->
   </div>
+  <TrainingOptions></TrainingOptions>
 </template>
 <style scoped>
 .training {

@@ -36,15 +36,17 @@ function selectOrExplore(name, isSelectMode) {
     <slot></slot>
   </div>
 </template>
-
+<style>
+:root {
+  --items-viewer-gap: 16px;
+}
+</style>
 <style scoped>
 .items-viewer {
-  --gap: 16px;
-
   display: flex;
-  flex-flow: row wrap;
-  gap: var(--gap);
-  padding-inline: var(--gap);
+  flex-flow: column wrap;
+  gap: var(--items-viewer-gap);
+  padding-inline: calc(var(--items-viewer-gap) * 2);
   padding-block: 48px;
   position: relative;
   z-index: 5;

@@ -39,49 +39,37 @@ function updateViewer() {
   console.log('cards in store after update:', cards.value)
 }
 
-const deletionRequested = ref(false)
+const cardToDelete = ref({
+  id: null,
+  question: '',
+})
 
-function toogleDeleter(item, id) {
-  if (item === 'collection') {
-    deletionRequested.value = !deletionRequested.value
-  } else if (item === 'card') {
-    cardToDelete.value = !cardToDelete.value
-    setIdToDelete(id)
+function setCardToDelete(id) {
+  const questionToDelete = cards.value.find((card) => card.id === id)?.question
+  cardToDelete.value = {
+    id: id,
+    question: questionToDelete,
   }
-}
-const cardToDelete = ref(null)
-const idToDelete = ref(null)
-
-function setIdToDelete(id) {
-  idToDelete.value = id
-}
-function toogleAndUpdate() {
-  toogleDeleter('card')
-  updateViewer()
 }
 </script>
 
 <template>
-  <TheHeader :settings-enabled="true" />
+  <TheHeader />
   <section class="collection-manager">
     <ItemsViewer v-if="cardsInCollection.length > 0">
       <CardThumbnail
         v-for="card in cardsInCollection"
         :key="card.id"
         :card="card"
-        @delete-card="toogleDeleter('card', $event)"
+        @delete-card="setCardToDelete($event)"
       />
     </ItemsViewer>
     <AddButton target="card"></AddButton>
   </section>
   <CardCreator @newCard="updateViewer" />
-  <CollectionOptions @delete="toogleDeleter('collection')"></CollectionOptions>
-  <CollectionDeleter
-    v-if="deletionRequested"
-    @canceled="toogleDeleter('collection')"
-    @keyup.esc="toogleDeleter('collection')"
-  ></CollectionDeleter>
-  <CardDeleter v-if="cardToDelete" :id="idToDelete" @deleted="toogleAndUpdate"></CardDeleter>
+  <CollectionOptions></CollectionOptions>
+  <CollectionDeleter></CollectionDeleter>
+  <CardDeleter :card="cardToDelete" @deleted="updateViewer"></CardDeleter>
 </template>
 <style scoped>
 .collection-manager {

@@ -4,12 +4,20 @@
   box-sizing: border-box;
 }
 :root {
-  --main-color: #4caf50;
-  --text-color: #ffffff;
-  --button-radius: 48px;
+  --main-color: white;
+  --text-color: black;
+  --alert-color: #ff4d4d;
+  --primary-font: 'Fuzzy Bubbles', sans-serif;
+  --secondary-font: 'Nunito', sans-serif;
+  --title-medium: 1.5rem;
 }
 a {
+  color: var(--text-color);
   text-decoration: none;
+
+  &:visited {
+    color: inherit;
+  }
 }
 li {
   list-style-type: none;

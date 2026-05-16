@@ -3,14 +3,16 @@ import TheHeader from '@/components/TheHeader.vue'
 </script>
 
 <template>
-  <TheHeader :settings-enabled="false" />
+  <TheHeader />
   <nav class="home__nav">
     <ul class="nav__list">
       <li class="nav__item">
-        <RouterLink to="/collections" class="nav__link green-mark">Collections</RouterLink>
+        <RouterLink to="/collections" class="nav__link" data-content="collections"
+          >&Eacute;crire</RouterLink
+        >
       </li>
       <li class="nav__item">
-        <RouterLink to="/training" class="nav__link green-mark">Training</RouterLink>
+        <RouterLink to="/training" class="nav__link" data-content="training">Mémoriser</RouterLink>
       </li>
     </ul>
   </nav>
@@ -22,65 +24,95 @@ import TheHeader from '@/components/TheHeader.vue'
   place-items: center;
 
   .nav__list {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    justify-content: center;
-    align-content: flex-start;
+    display: flex;
+    flex-flow: column;
     height: 100%;
+    gap: var(--main-title-size);
+    justify-content: center;
   }
+}
+.nav__item {
+  text-align: center;
+  z-index: 20;
 }
 .nav__link {
   --fontSize: 2rem;
-  --paddingBlock: 16px;
+  --paddingBlock: 6px;
+  --link-width: 15rem;
+  --link-height: 5rem;
+  --link-color: oklch(95.117% 0.09534 138.733);
 
   display: grid;
-  place-content: center;
-  font-size: var(--fontSize);
-  padding-inline: 0;
-  padding-block: var(--paddingBlock);
-  height: calc(var(--fontSize) + var(--paddingBlock));
   position: relative;
-  /* color: var(--text-color); */
+  place-items: center;
+  position: relative;
+  font-family: var(--primary-font);
+  font-size: var(--fontSize);
+  font-weight: 700;
+  vertical-align: middle;
+  justify-self: center;
+  padding-inline: 12px;
+  padding-block: var(--paddingBlock);
+  background-color: transparent;
+  width: var(--link-width);
+  height: var(--link-height);
+  min-width: fit-content;
+  min-height: fit-content;
 
-  &:before {
+  &::before,
+  &::after {
     content: '';
     position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: 3px 5px 3px 5px;
-    background:
-      conic-gradient(at 0 100%, rgb(var(--mark-color) / 100%) 1%, #fff0 3%) no-repeat 0 0 / auto
-        120%,
-      conic-gradient(from 180deg at 100% 0, #fff0, rgb(var(--mark-color) / 100%) 1%, #fff0 4%)
-        no-repeat 100% 100% / auto 120%,
-      linear-gradient(
-          var(--mark-bg-angle),
-          rgb(var(--mark-color) / 60%),
-          rgb(var(--mark-color) / 20%) 75%,
-          rgb(var(--mark-color) / 55%)
-        )
-        no-repeat center / auto;
+    z-index: -5;
+    border-radius: 50%;
+    background-color: var(--link-color);
   }
-
-  /* &.yellow-mark:before {
-    rotate: 1deg;
-    scale: 1.1;
-    transform: skew(-5deg);
-    --mark-color: 255 232 62;
-    --mark-bg-angle: 50deg;
-  } */
-
-  &.green-mark:before {
-    scale: 0.92;
-    transform: skew(7deg);
-    --mark-color: 91 233 92;
-    --mark-bg-angle: 30deg;
+  &::before {
+    background-color: var(--text-color);
+    height: calc(var(--link-height) + 8px);
+    width: calc(var(--link-width) + 8px);
   }
-  /* &.red-mark:before {
-    rotate: 0.5deg;
-    transform: skew(5deg);
-    --mark-color: 255 100 185;
-    --mark-bg-angle: 150deg;
-  } */
+  &::after {
+    height: calc(var(--link-height) + 4px);
+    width: calc(var(--link-width) + 4px);
+    background: conic-gradient(
+      from 0deg at 10% 50%,
+      var(--link-color) 15%,
+      white 36%,
+      var(--link-color) 66%
+    );
+  }
+}
+.nav__link[data-content='collections'] {
+  &::before,
+  &::after {
+    clip-path: shape(
+      from 1% 1%,
+      curve to 8% 7% with 9% 21%,
+      curve to 56% 2% with 48% 8%,
+      curve to 86% 5% with 97% 0,
+      line to 103% 92%,
+      curve to 40% 86% with 76% 87%,
+      curve to 1% 86% with 6% 86%,
+      line to 10% 52%,
+      close
+    );
+  }
+}
+.nav__link[data-content='training'] {
+  &::before,
+  &::after {
+    clip-path: shape(
+      from 0% 0%,
+
+      line to 22% 7%,
+      line to 85% 12%,
+      line to 100% 59%,
+      curve to 81% 86% with 98% 69%,
+      curve to 5% 68% with -5% 86%,
+      line to 10% 50%,
+      line to 1% 0%
+    );
+  }
 }
 </style>

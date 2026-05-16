@@ -40,7 +40,7 @@ function toogleInteractivity(state) {
 </script>
 
 <template>
-  <TheHeader :settings-enabled="false" />
+  <TheHeader />
   <section class="collection-manager">
     <ItemsViewer v-if="collections.length > 0" v-bind="{ inert: isInteractive ? null : 'inert' }">
       <CollectionThumbnail
@@ -55,10 +55,8 @@ function toogleInteractivity(state) {
 </template>
 <style scoped>
 .collection-manager {
-  height: 90vh;
   overflow: scroll;
-}
-.collection-manager:has(.add-button.active) {
-  background-color: rgb(76, 0, 255);
+  grid-area: 1/1/3/2;
+  padding-top: var(--header-height);
 }
 </style>
